@@ -25,31 +25,29 @@ if(process.argv[2]){
 //let path='./../../../node/';
 
 
-function write(name,data){                                                                                  
-    fs.writeFileSync(name,data,{encoding:'utf8', flag:'w'});                                                
-}                                                                                                           
 
-function writeMediaFile(mediaDir,nodeId,bildArray){                                                         
-                                                                                                            
-    let prefix="https://speierling.arglos.ch/node/"                                                         
-                                                                                                            
-    let mediaOutFile=mediaDir+"/media.json"                                                             
-                                                                                                            
-    let mediaOut= { type: "mediaCollection", pictures: [], videos: [], documents: [] }                      
-    bildArray.forEach( (file) => {                                                                          
-                                let medium= {}                                                              
-                                medium.picture=prefix+nodeId+"/"+file;                                         
-                                medium.thumb=prefix+nodeId+"/thumbs/"+file;                                    
-                                //medium.caption="";                                                        
-                                mediaOut.pictures.push(medium);                                             
-                             });                                                                            
-    write(mediaOutFile,JSON.stringify(mediaOut,null,2)+'\n');                                               
-                                                                                                            
-    //process.stdout.write(mediaOutFile+"\n"+JSON.stringify(mediaOut,null,2)+'\n\n');                       
-    //console.log(`${mediaOutFile}: ${mediaOut}`);                                                          
-                                                                                                            
-    return mediaOut;                                                                                        
-}                                                                                                           
+function write(name,data){
+    fs.writeFileSync(name,data,{encoding:'utf8', flag:'w'});
+}
+
+function writeMediaFile(mediaDir,nodeId,bildArray){ 
+
+    let prefix="https://speierling.arglos.ch/node/"
+    let mediaOutFile=mediaDir+"/media.json";
+    let mediaOut= { type: "mediaCollection", pictures: [], videos: [], documents: [] }
+    bildArray.forEach( (file) => {
+                                let medium= {}
+        medium.picture=prefix+nodeId+"/"+file;
+                                medium.thumb=prefix+nodeId+"/thumbs/"+file;
+                                //medium.caption="";
+                                mediaOut.pictures.push(medium);
+    });
+    
+    write(mediaOutFile,JSON.stringify(mediaOut,null,2)+'\n');
+    //process.stdout.write(mediaOutFile+"\n"+JSON.stringify(mediaOut,null,2)+'\n\n');
+    //console.log(`${mediaOutFile}: ${mediaOut}`);
+    return mediaOut;
+}
 
 
 fs.readdirSync(path)
@@ -83,4 +81,4 @@ fs.readdirSync(path)
     })
 
 
-write(path+'mediaIndex.json',JSON.stringify(out,null,2)); 
+write(path+'mediaIndex.json',JSON.stringify(out,null,2));
