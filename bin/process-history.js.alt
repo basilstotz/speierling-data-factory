@@ -27,6 +27,79 @@ function isNumber(x){
 
 let ISO_8601 = new RegExp( /^\d{4}(-\d\d(-\d\d(T\d\d:\d\d(:\d\d)?(\.\d+)?(([+-]\d\d:\d\d)|Z)?)?)?)?$/,"i");
 
+// geojson tools
+
+// maybe a class FeatureCollection?
+function makeFeatureCollection(features = []){
+    return { type: "FeatureCollection", features: features }
+}
+
+
+function pushFeature(featureCollection,feature){
+    featureCollection.features.push(feature);
+}
+
+function replaceFeature(featureCollection,feature){
+    let indexed= new IndexedFeatureCollection(featureCollection);
+    let featureIndex=indexed.getFeatureIndex(feature.id)
+    if(featureIndex){
+	featureCollection.features[featureIndex]=feature
+    }
+}
+
+function updateFeature(featureCollection,feature){
+    let indexed= new IndexedFeatureCollection(featureCollection);
+    let featureIndex=indexed.getFeatureIndex(feature.id)
+    if(featureIndex){
+	featureCollection.features[featureIndex]=feature
+    }else{
+	featureCollection.features.push(feature);
+    }
+}
+    
+
+// class
+
+function makeFeature(id,properties={}){
+    return { type: "Feature", id: "node/"+id, properties: properties }
+}
+
+
+class IndexedFeatureCollection {
+
+    constructor(featureCollection){
+	this.indexed = {};
+	let features=featureCollection.features;
+	for(let i=0;i<features.length;i++){
+	    let feature=features[i];
+	    feature["index"]=i;
+	    this.indexed[feature.id]=feature;
+	}
+    }
+
+    getFeatureById(id){
+	let nodeId=id;
+	if(this.indexed[nodeId]){
+	    return this.indexed[nodeId]
+	}else{
+	    return false
+	}
+    }
+
+    getFeatureByIndex(id){
+	if(this.indexed[id]){
+	    return this.indexed[id].index
+	}else{
+	    return false
+	}
+    }
+}
+
+
+
+// geojson tools
+
+
 function decimalYear(dateString){
     let date = new Date(dateString);
     let zeit=date.getFullYear()+(1.0/12.0)*date.getMonth()+(1.0/365.0)*date.getDate();
@@ -162,9 +235,9 @@ function getChanges(distory,key){
 
 
 
-function addHistory(geoIn){
+function addHistory(geoIn, history){
 
-    //let indexedHistory = new IndexedFeatureCollection(history);
+    let indexedHistory = new IndexedFeatureCollection(history);
     
     //let geoOut = makeFeatureCollection(); 
     
@@ -175,25 +248,26 @@ function addHistory(geoIn){
 	let geoId=feature.id;
 	let properties=feature.properties;
 
-	let fullhistory=properties.fullhistory;
+	let historyFeature=indexedHistory.getFeatureById(geoId)
 
-	if(fullhistory){
-	   
-            let stageone = filterOutdated( feature, fullhistory )
+	if(historyFeature){
+
+	    let history= historyFeature.properties.history;
+	    //
+            let stageone = filterOutdated( feature, history )
 	    //console.log(stageone)
 	    let stagetwo = addHistoric( feature, stageone );
             //console.log(stagetwo)
 	    properties["history"] = diffHistory(stagetwo);
 	    properties["historynew"] = 'yes';
-
-	    delete properties['fullhistory'];
+	    
 	}
     }
     process.stdout.write(JSON.stringify(geoIn,null,2));
 }
 
 
-/*
+
 let historyPath; //="history.geojson";
 
 if(process.argv[2]){
@@ -204,7 +278,6 @@ if(process.argv[2]){
 }
 
 let history = JSON.parse(read(historyPath));
-*/
 
 let chunks = '';
 process.stdin.on('readable', () => {
@@ -216,8 +289,7 @@ process.stdin.on('readable', () => {
 process.stdin.on('end', () => {
     let geo =JSON.parse(chunks);
     
-    //addHistory(geo, history)
-    addHistory(geo)
+    addHistory(geo, history)
 });
 
 
