@@ -1,0 +1,32 @@
+#!/bin/sh
+
+SRC_DIR=$1
+DST_DIR=$2
+
+DIRS=$(find $SRC_DIR -type d  |grep  ".*[^.]\.[0-9]*$")
+
+
+for DIR in $DIRS; do
+	ID="$(echo $DIR|cut -d. -f4)"
+	for FILE in $DIR/*; do
+		BASENAME="$(basename $FILE)"
+		if ! test -f "$DST_DIR/$ID/$BASENAME";then
+			echo "add $FILE"
+        		mkdir -p "$DST_DIR/$ID"
+                        TIME=$(exiftool -s -s -s -d "%Y%m%d%H%M.%S" -DateTimeOriginal  $FILE)
+                        test -z "$TIME" || TIME=" "
+        		convert -resize 1024x1024  "$FILE" "$DST_DIR/$ID/$BASENAME"
+		fi
+		if ! test -f "$DST_DIR/$ID/thumbs/$BASENAME";then
+        		mkdir -p "$DST_DIR/$ID/thumbs"
+        		convert -resize 100x100^ -gravity Center  -extent 100x100  "$FILE" "$DST_DIR/$ID/thumbs/$BASENAME"
+		fi
+	done
+done
+
+if test -d "$DST_DIR/thumbs"; then
+	rm -r  "$DST_DIR/thumbs"
+fi
+
+exit
+

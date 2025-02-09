@@ -1,0 +1,25 @@
+.PHONY: all
+all: sorbusdomestica.geojson
+
+sorbusdomestica.geojson: osm/sorbusdomestica.geojson tmp/project.json tmp/bilder.json
+	./bin/update-geojson.sh
+
+tmp/bilder.json: node  
+#	./bin/make-bilder.sh ./../map/node  | ./bin/make-media.js ./../map/node > ./tmp/bilder.json
+	./bin/make-bilder.js ./../../node/
+
+tmp/project.json: projekt.csv
+	csv2json -d ./projekt.csv ./tmp/project.json 
+
+.PHONY: node
+node:
+	@test -d ./../../Gemeinden || (echo "../Gemeinden not found";false)
+	./bin/convert-all.sh ./../../Gemeinden ./../../node
+
+.PHONY: archive
+archive:
+	./bin/archive.sh	
+
+########################################################################################
+osm/sorbusdomestica.geojson:
+	$(MAKE) -C ./osm all
