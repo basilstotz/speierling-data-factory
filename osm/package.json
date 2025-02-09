@@ -1,17 +1,16 @@
 {
-  "name": "osm-api",
+  "name": "history",
   "version": "1.0.0",
-  "main": "osm-api.js",
+  "description": "",
+  "main": "update-history.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-    "author": "",
-    "type": "module",
+  "author": "",
+  "type": "module",
   "license": "ISC",
   "dependencies": {
     "osm-api": "^2.3.0"
-  },
-
-  "description": ""
+  }
 }

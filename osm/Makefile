@@ -1,17 +1,24 @@
 
-all:
-	@./bin/query-all-sorbus.sh
-
 schweiz:
-	@rm cache/sorbus+045+005.json
-	@./bin/query-all-sorbus.sh
+	rm cache/sorbus+045+005.json
+	rm cache/sorbus+050+005.json
+	./bin/query-all-sorbus.sh
+	./bin/update-geojson.sh
+	./bin/upload.sh
 
+active:
+	find ./cache/ -name "sorbus*" -size +100c -exec rm \{\} \;
+	./bin/query-all-sorbus.sh
+	./bin/update-geojson.sh
+	./bin/upload.sh
 
-sorbusdomestica.geojson: 
-	geojson-merge ./cache/sorbus*.json | node ./bin/update-meta.js > sorbusdomestica.geojson.tmp                                                       
-	mv sorbusdomestica.geojson.tmp sorbusdomestica.geojson
+all:
+	rm ./cache/sorbus*
+	./bin/query-all-sorbus.sh
+	./bin/update-geojson.sh
+	./bin/upload.sh
 
 
 prereqs:
-	@./bin/prereqs.sh
+	./bin/prereqs.sh
 

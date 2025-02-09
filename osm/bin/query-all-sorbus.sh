@@ -13,7 +13,8 @@ query_part(){
     LAT2=$(echo "$LAT1 + 5"|bc)
     LON2=$(echo "$LON1 + 5"|bc) 
 
-    QUERY="[timeout:900];node($LAT1,$LON1,$LAT2,$LON2)"'["natural"="tree"]["species"~".*[Ss]orbus.*[Dd]omestica.*"];out meta;'
+    #QUERY="[timeout:900];node($LAT1,$LON1,$LAT2,$LON2)"'["natural"~"tree.*"]["species"~".*[Ss]orbus.*[Dd]omestica.*"];out meta;'
+    QUERY="[timeout:900];node($LAT1,$LON1,$LAT2,$LON2)"'["species"~".*[Ss]orbus.*[Dd]omestica.*"];out meta;'
 
     FA=$(printf "%+04i" $LAT1)
     FO=$(printf "%+04i" $LON1)
@@ -30,15 +31,12 @@ query_part(){
 LAT=30
 LON=-10
 
-for O in $(seq 0 8); do
+for O in $(seq 0 9); do
     for A in $(seq 0 4); do
 	LA=$(( LAT + 5 * A ))
 	LO=$(( LON + 5 * O ))
 	query_part $LA $LO
     done
 done
-
-geojson-merge $CACHE_DIR/sorbus*.json | node ./bin/update-meta.js > sorbusdomestica.geojson.tmp
-mv sorbusdomestica.geojson.tmp sorbusdomestica.geojson
 
 exit 0
