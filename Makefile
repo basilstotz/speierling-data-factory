@@ -8,6 +8,7 @@ sorbusdomestica.geojson: osm/sorbusdomestica.geojson tmp/project.json bilder
 #	./bin/make-bilder.sh ./../map/node  | ./bin/make-media.js ./../map/node > ./tmp/bilder.json
 
 tmp/project.json: projekt.csv
+	test -d ./tmp || mkdir -p ./tmp
 	csv2json -d ./projekt.csv ./tmp/project.json 
 
 .PHONY: bilder
@@ -18,6 +19,7 @@ bilder:
 
 .PHONY: archive
 archive:
+	test -d archive || mkdir -p archive
 	./bin/archive.sh	
 
 ########################################################################################
