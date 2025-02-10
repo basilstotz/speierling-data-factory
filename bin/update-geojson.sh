@@ -22,7 +22,7 @@ curl https://speierling.arglos.ch/node/mediaIndex.json 2>/dev/null  > "${ADDONS}
             ./bin/check-tags.js | \
             ./bin/process-nominatim.js | \
             ./bin/add-media.js "${ADDONS}/mediaIndex.json" | \
-            ./bin/process-project.js "${ADDONS}/project.json" 2> "${DATA}/project.log" | \
+            ./bin/process-project.js "${ADDONS}/project.json" 2> "${DATA}/log/project.log" | \
             ./bin/add-historic.js   | \
             ./bin/process-history.js   |  \
 	    ./bin/add-growth.js > "${DATA}/sorbusdomestica.geojson"
