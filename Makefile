@@ -7,6 +7,10 @@ sorbusdomestica.geojson:
 	./bin/update-geojson.sh
 
 
+init: ../Makefile
+	./bin/init.sh
+
+
 .PHONY: archive
 archive:
 	test -d archive || mkdir -p archive
