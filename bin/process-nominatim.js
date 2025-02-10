@@ -64,7 +64,7 @@ function processNominatim(geoIn){
 	    tags["addr:full"]=da.join(', ');
 	    
 	}
-	//if(feature.properties.nominatim){ delete feature.properties.nominatim }
+	if(feature.properties.geocoding){ delete feature.properties.geocoding }
 
 
 	// claenup
