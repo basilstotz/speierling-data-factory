@@ -2,6 +2,8 @@
 
 set -e
 
+cd $(dirname $0)/../.
+
 if test -z "$1"; then
     echo "usage: cat-osm.sh <cachedir>"
     exit 1
@@ -14,7 +16,6 @@ fi
 CACHE="$1"
 
 
-cd $(dirname $0)/../.
 
 pwd
 ls ${CACHE}/sorbus*.json
