@@ -16,7 +16,8 @@ CACHE="$1"
 
 cd $(dirname $0)/../.
 
-pwd
+#pwd
+ls ${CACHE}/sorbus*.json
 
 geojson-merge ${CACHE}/sorbus*.json | \
     ./bin/update-nominatim.cjs ${CACHE}/nominatim.json | \
