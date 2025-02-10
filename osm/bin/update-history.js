@@ -64,12 +64,12 @@ async function updateHistory(history,geo){
 
 	    if(geoVersion>historyVersion){
 		if(geoVersion==historyVersion+1){
-		    console.log(geoNodeId+" could be updated from file");
+		    //console.log(geoNodeId+" could be updated from file");
 		    needsUpdate=true;
 		}else{
 		    needsUpdate=true;
 		}
-		console.log("cache for "+geoNodeId+" is outdated");
+		//console.log("cache for "+geoNodeId+" is outdated");
 		//console.log(JSON.stringify(geoFeatures[i],null,2)+"\n\n");
 		//console.log(JSON.stringify(historyFeature,null,2)+"\n\n");
 		//process.exit();
@@ -79,7 +79,7 @@ async function updateHistory(history,geo){
 	    needsUpdate=true
 	}
 	if(needsUpdate){
-	    console.log("get "+geoNodeId+"from osm");
+	    process.stderr.write("get "+geoNodeId+"from osm\n");
 	    let hist = await OSM.getFeatureHistory("node",geoId);
 	    history[geoNodeId]=hist;
  	}
