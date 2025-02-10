@@ -17,8 +17,8 @@ CACHE="$1"
 
 
 
-pwd
-ls ${CACHE}/sorbus*.json
+#pwd
+#ls ${CACHE}/sorbus*.json
 
 geojson-merge ${CACHE}/sorbus*.json | \
     ./bin/update-nominatim.cjs ${CACHE}/nominatim.json | \
