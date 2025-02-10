@@ -65,6 +65,7 @@ function processNominatim(geoIn){
 	    
 	}
 	if(feature.properties.geocoding){ delete feature.properties.geocoding }
+	if(feature.properties.meta){ delete feature.properties.meta }
 
 
 	// claenup
