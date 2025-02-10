@@ -1,22 +1,29 @@
 #!/bin/sh
 
+DATA="./.."
+
+CACHE="${DATA}/cache"
+ADDONS="${DATA}/addons"
+
 cd "$(dirname $0)/../."
 
 pwd
 
 #./bin/update-history.sh >> ./update-history/update-history.log
 
-#cp ./../../node/mediaIndex.json mediaIndex.json
-curl https://speierling.arglos.ch/node/mediaIndex.json 2>/dev/null  >mediaIndex.json
+# ./bin/archive-stats.js ???????????????????????
 
-cat ./osm/sorbusdomestica.geojson | \
+#cp ./../../node/mediaIndex.json mediaIndex.json
+curl https://speierling.arglos.ch/node/mediaIndex.json 2>/dev/null  >${ADDONS}/mediaIndex.json
+
+./osm/bin/cat-osm-geojson.sh "$CACHE" | \
             ./bin/check-tags.js | \
             ./bin/process-nominatim.js | \
-            ./bin/add-media.js mediaIndex.json | \
-            ./bin/process-project.js ./tmp/project.json 2> project.log | \
+            ./bin/add-media.js ${ADDONS}/mediaIndex.json | \
+            ./bin/process-project.js ${ADDONS}/project.json 2> ${DATA}/project.log | \
             ./bin/add-historic.js   | \
             ./bin/process-history.js   |  \
-	    ./bin/add-growth.js > sorbusdomestica.geojson
+	    ./bin/add-growth.js > ${DATA}/sorbusdomestica.geojson
               
 
 #cat sorbusdomestica.geojson | ./bin/devel/reduce.js | ./bin/devel/flatten-tags.js > ./../../sorbusdomestica.geojson

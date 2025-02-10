@@ -2,10 +2,24 @@
 
 set -eu
 
+if test -z "$1"; then
+    echo "usage: query-all-sorbus.sh <cachedir>"
+    exit 1
+else
+    if ! test -d "$1"; then
+        echo "error: cachedir not found"
+        exit 1
+    fi
+fi
+CACHE_DIR="$1"
+
+#CACHE_DIR="./cache"
+
+
+mkdir -p $CACHE_DIR
+
 cd $(dirname $0)/../.
 
-CACHE_DIR="./cache"
-mkdir -p $CACHE_DIR
 
 query_part(){
     LAT1=$1
@@ -18,6 +32,7 @@ query_part(){
 
     FA=$(printf "%+04i" $LAT1)
     FO=$(printf "%+04i" $LON1)
+    
     FILE="$CACHE_DIR/sorbus$FA$FO.json"
 
     if ! test -f $FILE; then
