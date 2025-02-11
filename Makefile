@@ -3,7 +3,7 @@ all: sorbusdomestica.geojson
 
 .PHONY: sorbusdomestica.geojson
 sorbusdomestica.geojson:
-	find .. -name "Tabelle-*"|sort|tail -n1|xargs csv2json > ../addons/project.json 
+	find ../csv -name "Tabelle-*"|sort|tail -n1|xargs csv2json > ../addons/project.json 
 	./bin/update-geojson.sh
 
 
