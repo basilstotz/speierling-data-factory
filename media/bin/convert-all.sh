@@ -23,7 +23,7 @@ for DIR in $DIRS; do
     find "$DIR" -mindepth 1 -maxdepth 1 -type f | while read -r FILE; do
 	BASENAME="$(basename $FILE)"
 	if ! test -f "$DST_DIR/$ID/$BASENAME";then
-		echo -e "${GREEN} add $FILE$ {NC}"
+		echo -e "${GREEN} add $FILE$ ${NC}"
 		mkdir -p "$DST_DIR/$ID"
 		TIME=$(exiftool -s -s -s -d "%e.%B %Y" -DateTimeOriginal  "$FILE")
 		if test -z "$TIME"; then
