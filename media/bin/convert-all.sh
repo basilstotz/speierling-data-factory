@@ -1,5 +1,10 @@
 #!/bin/sh
 
+ORANGE='\033[0;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 SRC_DIR="$1"
 DST_DIR="$2"
 
@@ -18,7 +23,7 @@ for DIR in $DIRS; do
     find "$DIR" -mindepth 1 -maxdepth 1 -type f | while read -r FILE; do
 	BASENAME="$(basename $FILE)"
 	if ! test -f "$DST_DIR/$ID/$BASENAME";then
-		echo "add $FILE"
+		echo "${GREEN}add $FILE${NC}"
 		mkdir -p "$DST_DIR/$ID"
 		TIME=$(exiftool -s -s -s -d "%e.%B %Y" -DateTimeOriginal  "$FILE")
 		if test -z "$TIME"; then
