@@ -22,5 +22,6 @@ CACHE="$1"
 
 geojson-merge ${CACHE}/sorbus*.json | \
     ./bin/update-nominatim.cjs ${CACHE}/nominatim.json 2>/dev/null | \
+    ./bin/update-elevation.cjs ${CACHE}/elevation.json 2>/dev/null | \
     ./bin/update-history.js ${CACHE}/history.json 2>/dev/null 
 
