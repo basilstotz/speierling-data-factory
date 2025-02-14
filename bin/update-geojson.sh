@@ -20,6 +20,7 @@ curl https://speierling.arglos.ch/node/mediaIndex.json 2>/dev/null  > "${ADDONS}
 
 ./osm/bin/cat-osm-geojson.sh "../$CACHE" | \
             ./bin/check-tags.js | \
+            ./bin/process-elevation.js | \
             ./bin/process-nominatim.js | \
             ./bin/add-media.js "${ADDONS}/mediaIndex.json" | \
             ./bin/process-project.js "${ADDONS}/project.json" 2> "${DATA}/log/project.log" | \
