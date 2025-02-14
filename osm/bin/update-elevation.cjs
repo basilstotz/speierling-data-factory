@@ -91,7 +91,7 @@ async function addMeta(geodata){
     for(let i=0;i<features.length;i++){
 	let feature=features[i];
 	let id=feature.id;	    
-	if(addons[id]&&addons[id].elevation){
+	if(addons[id]&&addons[id].ele){
 	    features[i].geometry.coordinates[2]=addons[id].ele;
 	}
     }
