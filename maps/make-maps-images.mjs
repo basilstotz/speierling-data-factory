@@ -344,6 +344,7 @@ if(!process.argv[3]){
 	process.stderr.write('error: "'+nodedir+'" not found\n');
 	process.exit(1)
     }
+    if(!nodedir.endsWith('/'))nodedir=nodedir+'/';
 }
 
 if(!process.argv[2]){
@@ -355,6 +356,7 @@ if(!process.argv[2]){
 	process.stderr.write('error: "'+tiledir+'" not found\n');
 	process.exit(1)
     }
+    if(!tiledir.endsWith('/'))tiledir=tiledir+'/';
 }
 
 
