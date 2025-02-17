@@ -82,26 +82,6 @@ function latOnTile(lat, zoom) {
  
 
 
-function latLngToBounds(lat, lng, zoom, width, height){
-    
-  const metersPerPixelEW = EARTH_CIR_METERS / Math.pow(2, zoom + 8);
-
-  const shiftMetersEW = width/2 * metersPerPixelEW;
-
-  const shiftDegreesEW = shiftMetersEW * degreesPerMeter;
-  
-  const southTile = (TILE_SIZE * latOnTile(lat, zoom) + height/2) / TILE_SIZE
-  const northTile = (TILE_SIZE * latOnTile(lat, zoom) - height/2) / TILE_SIZE
-
-
-  return {
-    south: Math.max(tile2lat(southTile, zoom), -LIMIT_Y),
-    west: lng-shiftDegreesEW,
-    north: Math.min(tile2lat(northTile, zoom), LIMIT_Y),
-    east: lng+shiftDegreesEW
-  }
-}
-
 
 function isBoundInSwitzerland(bbox){
 
@@ -201,16 +181,30 @@ function bboxToDimension(bbox,zoom){
 
     return { dimX: dimX, dimY: dimY }
 }
+
+
+////////////////////  public functions  //////////////////////////////////
+
+function latLngToBounds(lat, lng, zoom, width, height){
     
+  const metersPerPixelEW = EARTH_CIR_METERS / Math.pow(2, zoom + 8);
 
-async function getTile(layer,x,y,z){
+  const shiftMetersEW = width/2 * metersPerPixelEW;
 
+  const shiftDegreesEW = shiftMetersEW * degreesPerMeter;
+  
+  const southTile = (TILE_SIZE * latOnTile(lat, zoom) + height/2) / TILE_SIZE
+  const northTile = (TILE_SIZE * latOnTile(lat, zoom) - height/2) / TILE_SIZE
 
-
-    return tile;
+  return {
+    south: Math.max(tile2lat(southTile, zoom), -LIMIT_Y),
+    west: lng-shiftDegreesEW,
+    north: Math.min(tile2lat(northTile, zoom), LIMIT_Y),
+    east: lng+shiftDegreesEW
+  }
 }
 
-async function downloadLayer(tiledir,layer, bbox,zoom){
+async function getLayer(tiledir,layer, bbox,zoom){
 
     let tiles = bboxToTiles(bbox,zoom);
     let switzerland = isBoundInSwitzerland(bbox);
@@ -229,7 +223,7 @@ async function downloadLayer(tiledir,layer, bbox,zoom){
 	    ext='png';
 	    break;
 	case 'slope':
-	    if(switzerland=="true" && zoom<=17){
+	    if(switzerland=='true' && zoom<=17){
 		url='https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.hangneigung-ueber_30/default/current/3857/'+z+'/'+x+'/'+y+'.png';
 	    }else{
 		url='';
@@ -244,7 +238,7 @@ async function downloadLayer(tiledir,layer, bbox,zoom){
 	    url=''
 	    break;
 	}
-	let path = tiledir+'/'+layer+'/'+zoom+'/'+x+'/';
+	let path = tiledir+layer+'/'+zoom+'/'+x+'/';
 	let file = y+'.'+ext;
 	let tile;
 	if(url!=''){
@@ -262,12 +256,11 @@ async function downloadLayer(tiledir,layer, bbox,zoom){
     return tileImages
 }
 
-
 async function makeImage(tiledir, layer, bbox, zoom, width, height){
 
     let pixel=latLonToPixel(bbox,zoom);
 
-    let tileImages = await downloadLayer(tiledir, layer, bbox, zoom);
+    let tileImages = await getLayer(tiledir, layer, bbox, zoom);
 
     //console.log(tileImages.length);
 
@@ -301,6 +294,7 @@ async function makeImage(tiledir, layer, bbox, zoom, width, height){
     }	
 }
 
+///////////////////////////////////////   end     /////////////////////////////////////
 
 async function processGeojson(geo){
 
@@ -351,12 +345,21 @@ if(!process.argv[2]){
     process.stderr.write('usage: make-maps-images.mjs <tilecachedir> <nodecachedir>\n');
     process.exit(1);
 }else{
-    tiledir=process.argv[3]
+    tiledir=process.argv[2]
     if(!existsSync(tiledir)){
 	process.stderr.write('error: "'+tiledir+'" not found\n');
 	process.exit(1)
     }
     if(!tiledir.endsWith('/'))tiledir=tiledir+'/';
+}
+
+if(process.argv[4] && process.argv[5]){
+    let lat=Number(process.argv[4]);
+    let lon=Number(process.argv[5]);
+    let bbox=latLngToBounds(lat,lon,16,512,512);
+    let image= await makeImage(tiledir, 'osm',bbox,16,512,512);
+    await image.write('./out.png')
+    process.exit(0);
 }
 
 
