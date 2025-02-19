@@ -19,6 +19,8 @@ import { promises as fs } from "fs";
 import { existsSync } from "fs"
 
 
+
+
 // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#lon.2Flat_to_tile_numbers_2
 
 const EARTH_CIR_METERS = 40075016.686;
@@ -204,19 +206,78 @@ function latLngToBounds(lat, lng, zoom, width, height){
   }
 }
 
-async function getLayer(tiledir,layer, bbox,zoom){
+
+function makeUrl(template, x, y, z){
+
+    return template.replace('{x}',x).replace('{y}',y).replace('{z}',z).replace('{s}','a');
+}
+
+// swisstopo layers
+// ch.bafu.landesforstinventar-waldmischungsgrad
+// ch.bafu.ren-wald
+// ch.bafu.lebensraumkarte-schweiz
+// ch.bafu.landesforstinventar-vegetationshoehenmodell
+// ch.swisstopo.hangneigung-ueber_30
+
+// templates
+// https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}
+// https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+// https://wmts.geo.admin.ch/1.0.0/{layer}/default/current/3857/{z}/{x}/{y}.png
+
+const layerDefs = {
+    osm: {
+	template: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+	name: 'osm',
+	ext: 'png'
+    },
+    esri: {
+	template: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+	name: 'esri',
+	ext: 'jpeg'
+    },
+    swisslaub: {
+	template: 'https://wmts.geo.admin.ch/1.0.0/ch.bafu.landesforstinventar-waldmischungsgrad/default/current/3857/{z}/{x}/{y}.png',
+	name: 'laub',
+	ext: 'png'
+    },
+    swisswald: {
+	template: 'https://wmts.geo.admin.ch/1.0.0/ch.bafu.ren-wald/default/current/3857/{z}/{x}/{y}.png',
+	name: 'wald',
+	ext: 'png'
+    },
+    swissraum: {
+	template: 'https://wmts.geo.admin.ch/1.0.0/ch.bafu.lebensraumkarte-schweiz/default/current/3857/{z}/{x}/{y}.png',
+	name: 'raum',
+	ext: 'png'
+    },
+    swisshoehe: {
+	template: 'https://wmts.geo.admin.ch/1.0.0/ch.bafu.landesforstinventar-vegetationshoehenmodell/default/current/3857/{z}/{x}/{y}.png',
+	name: 'hoehe',
+	ext: 'png'
+    },
+    swissslope: {
+	template: 'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.hangneigung-ueber_30/default/current/3857/{z}/{x}/{y}.png',
+	name: 'slope',
+	ext: 'png'
+    }
+}
+
+async function getLayer(tiledir,layerDef, bbox,zoom){
 
     let tiles = bboxToTiles(bbox,zoom);
-    let switzerland = isBoundInSwitzerland(bbox);
+    //let switzerland = isBoundInSwitzerland(bbox);
     let tileImages = [];
 
     //console.log(tiles.length)
     for(let i=0;i<tiles.length;i+=2){	
-	let url;
-	let ext;
 	let x=tiles[i];
 	let y=tiles[i+1];
 	let z=zoom;
+
+	let url=makeUrl(layerDef.template,x,y,z);
+	let ext=layerDef.ext;
+	let layer=layerDef.name;
+	/*
 	switch(layer){
 	case 'osm':
 	    url='https://a.tile.openstreetmap.org/'+z+'/'+x+'/'+y+'.png';
@@ -238,15 +299,17 @@ async function getLayer(tiledir,layer, bbox,zoom){
 	    url=''
 	    break;
 	}
-	let path = tiledir+layer+'/'+zoom+'/'+x+'/';
+        */
+	
+	let path = tiledir+layer+'/'+z+'/'+x+'/';
 	let file = y+'.'+ext;
 	let tile;
 	if(url!=''){
 	    if(existsSync(path+file) ){ 
 		tile = await Jimp.read(path+file)
 	    }else{
-		console.log(path+file);
 		tile = await Jimp.read(url);
+		console.log(path+file+' '+tile['mime']);
 		await fs.mkdir(path, { recursive: true } );	    
 		await tile.write(path+file);
 	    }
@@ -256,11 +319,11 @@ async function getLayer(tiledir,layer, bbox,zoom){
     return tileImages
 }
 
-async function makeImage(tiledir, layer, bbox, zoom, width, height){
+async function makeImage(tiledir, layerDef, bbox, zoom, width, height){
 
     let pixel=latLonToPixel(bbox,zoom);
 
-    let tileImages = await getLayer(tiledir, layer, bbox, zoom);
+    let tileImages = await getLayer(tiledir, layerDef, bbox, zoom);
 
     //console.log(tileImages.length);
 
@@ -287,8 +350,12 @@ async function makeImage(tiledir, layer, bbox, zoom, width, height){
 	let pixelY = pixel.pixelY;
 	let left = pixelX - width/2;
 	let top = pixelY- height/2;
-	let options = { x: left, y: top, w: width, h: height};
-	return out.crop(options)
+	if( (width==-1) && (height==-1) ){
+	    return out
+	}else{
+	    let options = { x: left, y: top, w: width, h: height};
+	    return out.crop(options);
+	}
     }else{
 	return false
     }	
@@ -302,25 +369,52 @@ async function processGeojson(geo){
     const height=512;
     const zoom=17;
     
+    const worldNames = ['osm', 'esri' ];
+    //const swisslayers = [ 'swisslaub', 'swisswald', 'swisshoehe', 'swissraum', 'swissslope' ]
+    const swissNames = [ 'swissslope', 'swissraum', 'swisshoehe', 'swisswald', 'swisslaub' ];
+    
     let features=geo.features;
     for(let i=0;i<features.length;i++){
 	const feature=features[i];
 	const id=feature.properties.id;
+	const tags = feature.properties.tags;
 	const lat=feature.geometry.coordinates[1];
 	const lon=feature.geometry.coordinates[0];
 
+	let names;
+        if(tags['addr:country']=='Schweiz/Suisse/Svizzera/Svizra'){
+	    names=worldNames.concat(swissNames)
+	}else{
+	    names=worldNames
+	}
+	
 	const bbox = latLngToBounds(lat, lon, zoom, width, height);
 
-	for(const layer of [ 'osm', 'esri', 'slope' ]){
+	for(const name of names){
+	    let layerDef= layerDefs[name];
+	    let layerName=layerDef.name;
 	    let nodepath=nodedir+id+'/';
-	    let nodefile= nodepath+layer+'.png';
+	    let nodefile= nodepath+layerName+'.png';
 	    if(!existsSync(nodefile)){
-		let image = await makeImage(tiledir, layer, bbox, zoom, width, height);
-		 if(image){
+		let image = await makeImage(tiledir, layerDef, bbox, zoom, width, height);
+		if(image){
+		    console.log(i+' '+nodefile);
 		     await fs.mkdir(nodepath, { recursive: true } );
-		     await image.write(nodefile);
-		 }
+		    await image.write(nodefile);    
+		}
 	    }
+	    if(layerName=='raum' && !existsSync(nodepath+layerName+'-768.png')){
+		let image = await makeImage(tiledir, layerDef, bbox, zoom, -1, -1);
+		if(image){
+		    console.log(i+' '+nodepath+layerName+'-768.png');
+		     await fs.mkdir(nodepath, { recursive: true } );
+		    await image.write(nodepath+layerName+'-768.png');    
+		}
+	    }
+
+
+
+	    
 	}	
     }
 }

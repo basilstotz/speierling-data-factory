@@ -62,13 +62,14 @@ function processNominatim(geoIn){
 		da=lla
 	    }
 	    tags["addr:full"]=da.join(', ');
+	    tags['addr:label']=geocoding.label;
 	    
 	}
 	if(feature.properties.geocoding){ delete feature.properties.geocoding }
+
+
+	// cleanup ---> does not belong here!!!
 	if(feature.properties.meta){ delete feature.properties.meta }
-
-
-	// claenup
 	if(feature.properties.relations){ delete feature.properties.relations }
     }
     return geoIn
