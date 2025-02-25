@@ -1,0 +1,4 @@
+#FFFFFF White
+#FFCACC Light rose
+#DD6167 Salmon pink
+#A82B34 Dull red

@@ -241,6 +241,11 @@ const layerDefs = {
 	ext: 'png'
     },
     swisswald: {
+	template: 'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wald/default/current/3857/{z}/{x}/{y}.png',
+	name: 'wald',
+	ext: 'png'
+    },
+    swissrenwald: {
 	template: 'https://wmts.geo.admin.ch/1.0.0/ch.bafu.ren-wald/default/current/3857/{z}/{x}/{y}.png',
 	name: 'wald',
 	ext: 'png'
@@ -258,6 +263,11 @@ const layerDefs = {
     swissslope: {
 	template: 'https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.hangneigung-ueber_30/default/current/3857/{z}/{x}/{y}.png',
 	name: 'slope',
+	ext: 'png'
+    },
+    swisshang: {
+	template: 'https://wmts.geo.admin.ch/1.0.0/ch.blw.hang_steillagen/default/current/3857/{z}/{x}/{y}.png',
+	name: 'hang',
 	ext: 'png'
     }
 }
@@ -371,7 +381,7 @@ async function processGeojson(geo){
     
     const worldNames = ['osm', 'esri' ];
     //const swisslayers = [ 'swisslaub', 'swisswald', 'swisshoehe', 'swissraum', 'swissslope' ]
-    const swissNames = [ 'swissslope', 'swissraum', 'swisshoehe', 'swisswald', 'swisslaub' ];
+    const swissNames = [ 'swissslope', 'swissraum', 'swisshoehe', 'swisswald', 'swisslaub', 'swisshang' ];
     
     let features=geo.features;
     for(let i=0;i<features.length;i++){

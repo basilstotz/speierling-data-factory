@@ -1,0 +1,3 @@
+#006F22 Darkish green
+#87C967 Turtle green
+#89B58A Greyish green
