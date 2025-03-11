@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-import { HGTDem } from './HGTDem.mjs'
+import { HGTDem } from './modules/HGTDem.mjs'
 //import { Jimp } from 'jimp';
-import { readFileSync,existsSync,mkdirSync } from 'node:fs'
+import fs from 'node:fs'
 
 /*
 let info = {
@@ -24,29 +24,40 @@ let info = {
 */
 
 const dem = new HGTDem('data1');
+
+const path='.'
+
+async function makeDem(info, dirName){
+    let demName= dirName+'dem-'+info.width+'.png';    
+    if(!fs.existsSync(demName)){
+        await dem.makeImage(info.bbox,info.zoom);
+	await dem.writeImage(demName);
+    }
+}
+
+async function doit(){
+    fs.readdirSync(path).map( (dirName) => {
+	if(fs.lstatSync(dirName).isDirectory()){
+            fs.readdirSync(dirName).map( (filename) => {
+		if(filename.match(/info-.*\.json/)){
+		    console.log('ja: '+filename);
+		    let info=JSON.parse(readFileSync(dirName+filename,'utf-8'));
+		    makeDem(info,dirName);
+		}  
+	    })
+	}	
+    })
+}
+					
+
+await doit();
+
 //console.log(await dem.getElevation(47.5,7.5))
 //await dem.makeImage(info.bbox,info.zoom);
 //await dem.writeImage('bild.png')
 
 
-async function processGeojson(geo){
-    let features=geo.features;
-    for(let i=0;i<features.length;i++){
-        let feature=features[i];
-        let id=feature.id;
-        let path='/home/stotz.basil/git/speierling-site/data/'+id+'/';
-        let size=512
-        //process.stderr.write(path+'info-'+size+'.json\n');
-        if(existsSync(path+'info-'+size+'.json')){
-            process.stderr.write('.');
-            let info=JSON.parse(readFileSync(path+'info-'+size+'.json','utf-8'));
-            //console.log(info)
-            await dem.makeImage(info.bbox,info.zoom);
-            await dem.writeImage(path+'dem-'+size+'.png');
-        }
-    }
-}
-
+/*
 
 var chunks = '';
 
@@ -60,5 +71,5 @@ process.stdin.on('readable', () => {
 process.stdin.on('end', async () => {
     await processGeojson(JSON.parse(chunks))
 });
-
+*/
 

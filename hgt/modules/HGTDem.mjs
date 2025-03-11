@@ -3,7 +3,7 @@
 import { existsSync,mkdirSync } from 'node:fs';
 
 //import { SphericalMercator } from '@mapbox/sphericalmercator';
-import * as utils from './../../git/map2image/map-utils.mjs';
+import * as utils from './map-utils.mjs';
 
 //import { TileSet } from 'srtm-elevation';
 import pkg from 'srtm-elevation';
