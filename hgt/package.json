@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@mapbox/sphericalmercator": "^2.0.1",
+    "@mapbox/tilebelt": "^2.0.2",
+    "express-generator": "^4.16.1",
+    "jimp": "^1.6.0",
+    "srtm-elevation": "^2.1.2",
+    "xyz-affair": "^0.9.1"
+  }
+}
