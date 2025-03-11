@@ -39,23 +39,26 @@ export class HGTDem  {
     getSlope(lat,lon){
     }
     
-    //stimmt nicht
-    elevationToColor2(ele){
+    //stimmt 
+    elevationToColor(ele){
 	ele*=10;
 	let val=Math.round((ele+10000)*10)
 	return (val<<8)+0xff;
     }
     
-    elevationToColor(ele){
+    elevationToColor2(ele){
 	const rs=256*256*256;
 	const gs=256*256
 	const bs=256;
-	ele*=10;
+	ele = Math.round((ele+10000)*10)
 	let red=Math.round(ele/rs);
 	let rest=ele-red*rs;
 	let green=Math.round(rest/gs);
 	let blue=Math.round(rest-green*gs);
-	return 10*(red*rs+green*gs+blue*bs+255)
+	console.log(ele,red,green,blue)
+	let ans= (red*rs+green*gs+blue*bs+255) //& 0xffffffff
+	//if(ans<0)ans=0x000000ff;
+	return ans;
     }
     
     async makeImageMercator(leftTile,rightTile,bottomTile,topTile,zoom,border){
@@ -95,14 +98,13 @@ export class HGTDem  {
 		let y=topTile+j*delta;                          // war dy;
 		let lon=utils.tile2long(x,zoom);
 		let lat=utils.tile2lat(y,zoom);
-		let ans = await this.getElevation(lat,lon);
-		let ele=ans.ele;
+		let ele = await this.getElevation(lat,lon);
 		if(ele>0){
 		    lastEle=ele
 		}else{
 		    ele=lastEle
 		}
-		//console.log(ans)
+//process.stderr.write(ele+' ')
 		let color=this.elevationToColor(ele); 
 		image.setPixelColor(color, i,j);
 		//console.log(color,i,j)

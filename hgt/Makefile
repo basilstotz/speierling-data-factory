@@ -1,2 +1,2 @@
 all:
-	cat ~/git/speierling-site/data/sorbusdomestica.geojson | ./make-geojson.js > ~/git/speierling-site/data/slope.geojson
+	cat ../../sorbusdomestica.geojson | ./make-node-dems.mjs ../../hgt/data1/ ../../node/ true
