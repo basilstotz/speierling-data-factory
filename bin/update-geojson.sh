@@ -24,13 +24,14 @@ curl https://speierling.arglos.ch/node/mediaIndex.json 2>/dev/null  > "${ADDONS}
 	    ./hgt/make-node-dems.mjs ../hgt/data1 ../node | \
 	    ./hgt/update-slope-addon.mjs ../hgt/data1 "$ADDONS/slope.json" | \
 	    ./bin/add-slope.js "${ADDONS}/slope.json" | \
-            ./bin/process-nominatim.js | \
+            ./bin/process-nominatim.js > tmp.geojson
+cat tmp.geojson | \
             ./bin/add-media.js "${ADDONS}/mediaIndex.json" | \
             ./bin/process-project.js "${ADDONS}/project.json" 2> "${DATA}/log/project.log" | \
             ./bin/add-historic.js   | \
             ./bin/process-history.js   |  \
 	    ./bin/add-growth.js > "${DATA}/sorbusdomestica.geojson"
-              
+test -f tmp.geojson && rm tmp.geojson              
 
 #cat sorbusdomestica.geojson | ./bin/devel/reduce.js | ./bin/devel/flatten-tags.js > ./../../sorbusdomestica.geojson
 
