@@ -2,7 +2,7 @@
 
 import { existsSync,mkdirSync } from 'node:fs';
 
-//import { SphericalMercator } from '@mapbox/sphericalmercator';
+import { SphericalMercator } from '@mapbox/sphericalmercator';
 import * as utils from './map-utils.mjs';
 
 //import { TileSet } from 'srtm-elevation';
@@ -18,10 +18,15 @@ let tileset;
 var  Image;
 let lastEle=400;
 
+
 export class HGTDem  {
 
     constructor(tileDir,options){
 	tileset= new TileSet(tileDir,options)
+	this.merc = new SphericalMercator({
+	    size: 256,
+	    antimeridian: true
+	});
     }
 
     getElevation(lat, lon, options={}){
@@ -36,12 +41,61 @@ export class HGTDem  {
 	});
     }
 
-    getSlope(lat,lon){
+
+    async getSlope(lat,lon,delta=1){
+
+	let [ x,y ] = this.merc.px([lon,lat],12);
+	const top = y - delta;
+	const left = x - delta;
+//console.log(left,top,delta);
+
+	let H = [];
+	for(let i=0;i<3;i++){
+	    for(let j=0;j<3;j++){
+		let px=left+j*delta;
+		let py=top+i*delta;
+		let [ lon,lat] = this.merc.ll([px,py],12)
+		try {
+		    let ele = await this.getElevation(lat,lon)
+//console.log(lat,lon);
+		    H.push(ele);
+		} catch {
+		    console.log('error')
+		}
+	    }
+	}
+	const ax =
+	    [ 1, 0, -1,
+	      2, 0, -2,
+	      1, 0, -1
+	    ];
+	const ay =
+	    [ 1, 2, 1,
+	      0, 0, 0,
+	     -1,-2,-1
+	    ];
+	let dzdx =0.0;
+	for(let i=0;i<H.length;i++){
+	    dzdx+=ax[i]*H[i];
+	}
+	let dzdy =0.0;
+	for(let i=0;i<H.length;i++){
+	    dzdy+=ay[i]*H[i];
+	}
+	const zFactor=1.0/(2*delta*45)
+	dzdx= dzdx/(2*delta);
+	dzdy= dzdy/(2*delta);
+
+	const d2=zFactor*Math.sqrt( dzdx*dzdx + dzdy*dzdy)
+	const slope=d2;
+	const aspect =  Math.atan2( dzdy, dzdx );
+	
+	let ans = { ele: H[4], slope: slope, aspect: aspect };
+	return ans;
     }
     
     //stimmt 
     elevationToColor(ele){
-	ele*=10;
 	let val=Math.round((ele+10000)*10)
 	return (val<<8)+0xff;
     }

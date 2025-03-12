@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@mapbox/sphericalmercator": "^2.0.1",
     "jimp": "^1.6.0",
     "srtm-elevation": "^2.1.2"
   }
