@@ -46,6 +46,7 @@ process.stderr.write('.');
 	    }
 	}
     }
+    process.stdout.write(JSON.stringify(geo,null,2));
 }
 
 
@@ -102,50 +103,4 @@ process.stdin.on('readable', () => {
 process.stdin.on('end', async () => {
     await processGeojson(JSON.parse(chunks))
 });
-
-
-/*
-
-async function makeDem(info, dirName){
-    let demName= dirName+'dem-'+info.width+'.png';    
-    if(force || !fs.existsSync(demName)){
-	console.log(demName);
-	//if(demName!='../../node/9999040855/dem-512.png'){
-	//dem.makeImage(info.bbox,info.zoom).then(dem.writeImage(demName));
-	await dem.makeImage(info.bbox,info.zoom);
-	await dem.writeImage(demName);
-	//}
-    }
-}
-
-
-
-function doit(nodePath){
-    fs.readdirSync(nodePath).map( (dirName) => {
-	let path=nodePath+dirName+'/';
-	//console.log(path);
-	if(fs.statSync(path).isDirectory()){
-            fs.readdirSync(path).map( (filename) => {
-		if(filename.match(/info-.*\.json/)){
-		    console.log('ja: '+path+filename);
-		    let info=JSON.parse(fs.readFileSync(path+filename,'utf-8'));
-		    let u = await makeDem(info,path);
-		}  
-	    })
-	}	
-    })
-}
-
-
-dem = new HGTDem(hgtPath);
-doit(nodePath);
-
-//console.log(await dem.getElevation(47.5,7.5))
-//await dem.makeImage(info.bbox,info.zoom);
-//await dem.writeImage('bild.png')
-
-*/
-/*
-
-*/
 

@@ -21,6 +21,8 @@ curl https://speierling.arglos.ch/node/mediaIndex.json 2>/dev/null  > "${ADDONS}
 ./osm/bin/cat-osm-geojson.sh "../$CACHE" | \
             ./bin/check-tags.js | \
             ./bin/process-elevation.js | \
+	    ./hgt/make-node-dems.mjs ../hgt/data1 ../node | \
+	    ./hgt/update-slope-addon.mjs ../hgt/data1 "$ADDONS/slope.json" | \
 	    ./bin/add-slope.js "${ADDONS}/slope.json" | \
             ./bin/process-nominatim.js | \
             ./bin/add-media.js "${ADDONS}/mediaIndex.json" | \
