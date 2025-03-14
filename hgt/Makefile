@@ -3,7 +3,7 @@ all: nodedems addon
 
 
 nodedems:
-	cat ../../sorbusdomestica.geojson | ./make-node-dems.mjs ../../hgt/data1/ ../../node/ > /dev/null 
+	cat ../../sorbusdomestica.geojson | ./make-node-dems.mjs ../../hgt/data1/ ../../node/ true > /dev/null 
 
 
 addon:
