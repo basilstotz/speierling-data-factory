@@ -28,9 +28,9 @@ async function processGeojson(geo){
 	const lon=feature.geometry.coordinates[0];
               
 	let path=nodePath+id+'/'
-	if(!existsSync(path))mkdirSync(path,{recursive:true});
 	if(!existsSync(path+'osm-512.png')){
 	    process.stderr.write('.');
+	    if(!existsSync(path))mkdirSync(path,{recursive:true});
 	    await tileset.getImageByPos(lat,lon,zoom,width,height);
 	    await tileset.writeImage(path+'osm-512.png');
 	    await tileset.writeInfo(path+'info-512.json');

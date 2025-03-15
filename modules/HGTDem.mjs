@@ -27,6 +27,17 @@ export class HGTDem  {
 	    size: 256,
 	    antimeridian: true
 	});
+	ax =
+	    [ 1, 0, -1,
+	      2, 0, -2,
+	      1, 0, -1
+	    ];
+	ay =
+	    [ -1, -2, -1,
+	       0,  0,  0,
+	       1,  2,  1
+	    ];
+
     }
 
     getElevation(lat, lon, options={}){
@@ -64,23 +75,13 @@ export class HGTDem  {
 		}
 	    }
 	}
-	const ax =
-	    [ 1, 0, -1,
-	      2, 0, -2,
-	      1, 0, -1
-	    ];
-	const ay =
-	    [ -1, -2, -1,
-	       0,  0,  0,
-	       1,  2,  1
-	    ];
 	let dzdx =0.0;
 	for(let i=0;i<H.length;i++){
-	    dzdx+=ax[i]*H[i];
+	    dzdx+=this.ax[i]*H[i];
 	}
 	let dzdy =0.0;
 	for(let i=0;i<H.length;i++){
-	    dzdy+=ay[i]*H[i];
+	    dzdy+=this.ay[i]*H[i];
 	}
 	const zFactor=1.0/(2*delta*45)
 	dzdx= dzdx/(2*delta);

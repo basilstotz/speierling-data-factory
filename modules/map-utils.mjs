@@ -6,7 +6,8 @@ import { existsSync, writeFileSync, mkdirSync } from 'fs'
 import * as tilebelt from '@mapbox/tilebelt'
 */
 
-//import * as tilebelt from '@mapbox/tilebelt' 
+import * as tilebelt from '@mapbox/tilebelt' 
+ 
 
 // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#lon.2Flat_to_tile_numbers_2
 
@@ -214,6 +215,24 @@ export function bboxToTiles(bbox,zoom){
     return tiles;
 }
 
+export function bboxToQuads(bbox,zoom){
+    let tiles= bboxToTiles(bbox,zoom);
+    let quads=[];
+    for(let i=0;i<tiles.length;i+=2){
+	quads.push(tilebelt.tileToQuadkey([ tiles[i],tiles[i+1],zoom ]));
+    }
+    return quads;
+}
+
+export function tileToQuadKey(tile){
+    return tilebelt.tileToQuadkey(tile)
+}
+
+export function quadkeyToTile(quadkey){
+    return tilebelt.quadkeyToTile(quadkey)
+}
+
+    
 export function bboxToDimension(bbox,zoom){
 
     let top=lat2tile(bbox.north,zoom);

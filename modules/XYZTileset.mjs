@@ -26,13 +26,21 @@ export class XYZTileset{
 	
 	this.TILE_SIZE=256;
 	this.setOptions(options);
+	this.cache={};
     }
 
-    
-    async getTile(x, y, z){
-
-	let tile;
+    async getTileFromURL(quadkey){
+	let [x,y,z] = utils.quadkeyToTile(quadkey);
 	let url =  this.template.replace('{s}','a').replace('{x}',x).replace('{y}',y).replace('{z}',z); 
+	return await Jimp.read(url);
+    }
+    
+    
+    async getTile(quadkey){
+	let [x,y,z] = utils.quadkeyToTile(quadkey);
+	let tile;
+	//let url =  this.template.replace('{s}','a').replace('{x}',x).replace('{y}',y).replace('{z}',z); 
+
 	if(this.cachedir){
 	    let path = this.cachedir+'/'+z+'/'+x+'/'+y;
 	    if(!this.ext){
@@ -47,7 +55,7 @@ export class XYZTileset{
 	      	tile = await Jimp.read(path+'.'+this.ext);
 	    }else{
 		process.stderr.write('+');
-		tile = await Jimp.read(url);
+		tile = await this.getTileFromURL(quadkey);
 		this.ext = tile.mime.slice(tile.mime.indexOf('/')+1)
 		if(!existsSync(path.slice(0,path.lastIndexOf('/')))){
 		    mkdirSync(path.slice(0,path.lastIndexOf('/')),{ recursive:true});
@@ -55,38 +63,37 @@ export class XYZTileset{
 		await tile.write(path+'.'+this.ext);
 	    }
 	}else{
-	    tile= await Jimp.read(url);
+	    tile= await this.getTileFromURL(quadkey);
 	}
 	return tile
     }
 
     async getTiles(bbox,zoom){
 	
-	let tilesSpec = utils.bboxToTiles(bbox,zoom);
-	let changed=false;
-	if(tilesSpec.length==this.tilesSpec.length){
-	    for(let i=0;i<tilesSpec.length;i++){
-		if(tilesSpec[i]!=this.tilesSpec[i]){
-		    changed=true;
-		    break;
-		}
+	let quads  = utils.bboxToQuads(bbox,zoom);
+	let tiles=[];
+        for(let quad of quads){
+	    if(this.cache[quad]){
+		process.stderr.write('*');
+		tiles.push(this.cache[quad].tile)
+	    }else{
+		let tile= await this.getTile(quad);
+		let now=Date.now();
+		this.cache[quad]= { tile: tile, timestamp: now } 
+		tiles.push(tile);
 	    }
-	}else{
-	    changed=true
 	}
-	if(changed){
-	    this.tilesSpec=tilesSpec;
-	    this.zoom=zoom;
-	    this.tiles = [];
-	    this.bbox = bbox;
-	    for(let i=0;i<this.tilesSpec.length;i+=2){	
-		let x=this.tilesSpec[i];
-		let y=this.tilesSpec[i+1];
-		let z=zoom;
-		this.tiles.push(await this.getTile(x,y,z))
+	//garbabe collection
+	let cacheArray= Object.entries(this.cache);
+	if(cacheArray.length>500){
+	    cacheArray.sort( (a,b) => { return b[1].timestamp - a[1].timestamp } );
+	    process.stderr.write('garbage');
+	    for(let i=0;i<250;i++){
+		let [key,value] = cacheArray[i];
+		delete this.cache[key]
 	    }
-	}	
-	return this.tiles
+	}
+	return tiles
     }
 
     async getImage(bbox,zoom){
