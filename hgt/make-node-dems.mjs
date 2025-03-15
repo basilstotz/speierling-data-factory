@@ -39,7 +39,8 @@ async function processGeojson(geo){
 	    if(force || !fs.existsSync(demFile)){
 		let info= JSON.parse(fs.readFileSync(infoFile,'utf-8'));
 		
-process.stderr.write('.');
+		process.stderr.write('.');
+//console.log(info,info.bbox,info.zoom);
 		let img= await dem.makeImage(info.bbox,info.zoom);
 //if(i==10)console.log(img);
 		await dem.writeImage(demFile);

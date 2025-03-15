@@ -1,12 +1,15 @@
-all: nodedems addon
+all: dems addon
 
 
+dems:
+	cat ../../../data/sorbusdomestica.geojson | ./make-node-dems.mjs ../../../data/hgt/data1/ ../../../data/node/  > /dev/null 
 
-nodedems:
-	cat ../../sorbusdomestica.geojson | ./make-node-dems.mjs ../../hgt/data1/ ../../node/ true > /dev/null 
+
+forcedems:
+	cat ../../../data/sorbusdomestica.geojson | ./make-node-dems.mjs ../../../data/hgt/data1/ ../../../data/node/ true  
 
 
 addon:
-	test -f ../../addons/slope.json || echo "{}" > ../../addons/slope.json 
-	cat ../../sorbusdomestica.geojson | ./update-slope-addon.mjs ../../hgt/data1/ ../../addons/slope.json >/dev/null
+	test -f ../../../data/addons/slope.json || echo "{}" > ../../../data/addons/slope.json 
+	cat ../../../data/sorbusdomestica.geojson | ./update-slope-addon.mjs ../../../data/hgt/data1/ ../../../data/addons/slope.json >/dev/null
 

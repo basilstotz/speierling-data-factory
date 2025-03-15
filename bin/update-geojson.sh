@@ -2,10 +2,12 @@
 
 set -e
 
-DATA=".."
+DATA="../"
 
 CACHE="${DATA}/cache"
 ADDONS="${DATA}/addons"
+HGT="${DATA}/hgt/data1"
+NODE="${DATA}/node"
 
 cd "$(dirname $0)/../."
 
@@ -21,8 +23,8 @@ curl https://speierling.arglos.ch/node/mediaIndex.json 2>/dev/null  > "${ADDONS}
 ./osm/bin/cat-osm-geojson.sh "../$CACHE" | \
             ./bin/check-tags.js | \
             ./bin/process-elevation.js | \
-	    ./hgt/make-node-dems.mjs ../hgt/data1 ../node | \
-	    ./hgt/update-slope-addon.mjs ../hgt/data1 "$ADDONS/slope.json" | \
+	    ./hgt/make-node-dems.mjs "${HGT}" "${NODE}" | \
+	    ./hgt/update-slope-addon.mjs "${HGT}" "${ADDONS}/slope.json" | \
 	    ./bin/add-slope.js "${ADDONS}/slope.json" | \
             ./bin/process-nominatim.js > tmp.geojson
 cat tmp.geojson | \

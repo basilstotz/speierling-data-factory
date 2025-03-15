@@ -9,8 +9,6 @@ async function processGeojson(geo){
     const height=512;
     const zoom=16;
 
-    /*
-    */
     
     let tileset = new XYZTileset();
     let features=geo.features;
@@ -57,6 +55,7 @@ async function processGeojson(geo){
 	    //await tileset.writeInfo(path+'info-512.json');
 	}	
     }
+    tileset.logInfo();
 }
 
 

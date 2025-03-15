@@ -3,7 +3,7 @@
 import { existsSync,mkdirSync } from 'node:fs';
 
 import { SphericalMercator } from '@mapbox/sphericalmercator';
-import * as utils from './map-utils.mjs';
+//import * as utils from './map-utils.mjs';
 
 //import { TileSet } from 'srtm-elevation';
 import pkg from 'srtm-elevation';
@@ -14,7 +14,7 @@ const { TileSet } = pkg;
 import {Jimp} from 'jimp';
 //import * as tilebelt from '@mapbox/tilebelt';
 
-let tileset;
+let tilesetter;
 var  Image;
 let lastEle=400;
 
@@ -22,17 +22,17 @@ let lastEle=400;
 export class HGTDem  {
 
     constructor(tileDir,options){
-	tileset= new TileSet(tileDir,options)
+	tilesetter= new TileSet(tileDir,options)
 	this.merc = new SphericalMercator({
 	    size: 256,
 	    antimeridian: true
 	});
-	ax =
+	this.ax =
 	    [ 1, 0, -1,
 	      2, 0, -2,
 	      1, 0, -1
 	    ];
-	ay =
+	this.ay =
 	    [ -1, -2, -1,
 	       0,  0,  0,
 	       1,  2,  1
@@ -42,7 +42,7 @@ export class HGTDem  {
 
     getElevation(lat, lon, options={}){
 	return new Promise( function(resolve, reject){
-            tileset.getElevation( [lat,lon] , function(err, elevation){
+            tilesetter.getElevation( [lat,lon] , function(err, elevation){
 		if(err){
                     reject(err)
 		}else{
@@ -117,7 +117,7 @@ export class HGTDem  {
     }
     
     async makeImageMercator(leftTile,rightTile,bottomTile,topTile,zoom,border){
-
+//process.stderr.write(leftTile+' '+rightTile+' '+bottomTile+' '+topTile+' '+zoom+'\n');
 	//in tiles units
 	const Dx=rightTile-leftTile
 	const Dy=bottomTile-topTile;  
@@ -142,17 +142,20 @@ export class HGTDem  {
 	    nnx=nx;
 	    nny=ny;
 	}
-//console.log('n ',nnx,nny);
+//process.stderr.write('n '+nnx+' '+nny+'\n');
 	const image= new Jimp({width: nnx, height: nny, color: 0xff0000ff });
 //console.log(zoom,nnx,nny,delta*256);
 	//const dx=Dx/nx;
 	//const dy=Dy/ny;
 	for(let i=0;i<nnx;i++){
 	    for(let j=0;j<nny;j++){
-		let x=leftTile+i*delta;                         // war dx;
-		let y=topTile+j*delta;                          // war dy;
+		let x=leftTile+i*delta;
+		let y=topTile+j*delta;
+		/*
 		let lon=utils.tile2long(x,zoom);
 		let lat=utils.tile2lat(y,zoom);
+                */
+		let [ lon,lat ] =this.merc.ll([ x*256, y*256 ],zoom);
 		let ele = await this.getElevation(lat,lon);
 		if(ele>0){
 		    lastEle=ele
@@ -170,20 +173,25 @@ export class HGTDem  {
     }
 
     async makeImage(bbox,zoom,border=true){
-
+//console.log(bbox,zoom,border);
 	//wgs84
 	const bottom=bbox.south;
 	const top=bbox.north;
 	const left=bbox.west;
 	const right=bbox.east;
 	//webmercator
+	/*
 	const leftTile=utils.lon2tileFraction(left,zoom);
 	const rightTile=utils.lon2tileFraction(right,zoom);
 	const bottomTile=utils.lat2tileFraction(bottom,zoom);
 	const topTile=utils.lat2tileFraction(top,zoom);
+        */
 
-//console.log(leftTile,rightTile,'             ',bottomTile,topTile);
-	let image = await this.makeImageMercator(leftTile,rightTile,bottomTile,topTile,zoom,border);
+	const [ leftTile,topTile ] = this.merc.px([left,top],zoom);
+	const [ rightTile,bottomTile ] = this.merc.px([right,bottom],zoom);
+	
+//process.stderr.write(leftTile+' '+rightTile+'    *****    '+bottomTile+' '+topTile+'\n');
+	let image = await this.makeImageMercator(leftTile/256,rightTile/256,bottomTile/256,topTile/256,zoom,border);
 	return image;
     }
     

@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 
-import { Jimp } from 'jimp';
+//import { Jimp } from 'jimp';
 //import { promises as fs } from 'fs';
-import { existsSync, writeFileSync, mkdirSync } from 'fs'
-import * as utils from './map-utils.mjs'
+//import { existsSync, writeFileSync, mkdirSync } from 'fs'
 
-export class XYZTileset{
+//import * as utils from './map-utils.mjs'
+
+class XYZTileset{
 
     setOptions(options={}){
 	if(options.template){
@@ -13,13 +14,6 @@ export class XYZTileset{
 	}else{
 	    this.template='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 	}
-	if(options.cachedir){
-	    this.cachedir=options.cachedir;
-	}else{
-	    if(this.cachedir){ delete this.cachedir }
-	}
-	this.tilesSpec=[];
-	
     }
 
 
@@ -28,12 +22,10 @@ export class XYZTileset{
 	this.TILE_SIZE=256;
 	this.setOptions(options);
 	this.cache={};
-	this.total=0;
-	this.memory=0;
-	this.disk=0;
-	this.url=0;
     }
 
+    
+    
     async getTileFromURL(quadkey){
 	let [x,y,z] = utils.quadkeyToTile(quadkey);
 	let url =  this.template.replace('{s}','a').replace('{x}',x).replace('{y}',y).replace('{z}',z); 
@@ -41,52 +33,17 @@ export class XYZTileset{
     }
     
     
-    async getTile(quadkey){
-	let [x,y,z] = utils.quadkeyToTile(quadkey);
-	let tile;
-	//let url =  this.template.replace('{s}','a').replace('{x}',x).replace('{y}',y).replace('{z}',z); 
-
-	if(this.cachedir){
-	    let path = this.cachedir+'/'+z+'/'+x+'/'+y;
-	    if(!this.ext){
-		if(existsSync(path+'.png')){
-		    this.ext='png';
-		}else if(existsSync(path+'.jpeg')){
-		    this.ext='jpeg'
-		}
-	    }
-	    if(this.ext && existsSync(path+'.'+this.ext)){
-		this.disk++;
-		process.stderr.write('-');
-	      	tile = await Jimp.read(path+'.'+this.ext);
-	    }else{
-		this.url++;
-		process.stderr.write('+');
-		tile = await this.getTileFromURL(quadkey);
-		this.ext = tile.mime.slice(tile.mime.indexOf('/')+1)
-		if(!existsSync(path.slice(0,path.lastIndexOf('/')))){
-		    mkdirSync(path.slice(0,path.lastIndexOf('/')),{ recursive:true});
-		}
-		await tile.write(path+'.'+this.ext);
-	    }
-	}else{
-	    tile= await this.getTileFromURL(quadkey);
-	}
-	return tile
-    }
 
     async getTiles(bbox,zoom){
 	
 	let quads  = utils.bboxToQuads(bbox,zoom);
-	this.total+=quads.length;
 	let tiles=[];
         for(let quad of quads){
 	    if(this.cache[quad]){
-		this.memory++
 		process.stderr.write('*');
 		tiles.push(this.cache[quad].tile)
 	    }else{
-		let tile= await this.getTile(quad);
+		let tile= await this.getTileFromURL(quad);
 		let now=Date.now();
 		this.cache[quad]= { tile: tile, timestamp: now } 
 		tiles.push(tile);
@@ -94,10 +51,10 @@ export class XYZTileset{
 	}
 	//garbabe collection
 	let cacheArray= Object.entries(this.cache);
-	if(cacheArray.length>1000){
+	if(cacheArray.length>500){
 	    cacheArray.sort( (a,b) => { return b[1].timestamp - a[1].timestamp } );
 	    process.stderr.write('garbage');
-	    for(let i=0;i<100;i++){
+	    for(let i=0;i<250;i++){
 		let [key,value] = cacheArray[i];
 		delete this.cache[key]
 	    }
@@ -108,7 +65,7 @@ export class XYZTileset{
     async getImage(bbox,zoom){
 
 	let tileImages = await this.getTiles(bbox,zoom);
-	let dimension= utils.bboxToDimension(bbox, zoom);
+	let dimension= utils.bboxToDimension(bbox, zoom);  //////////////////////////////////////////////////
 	let dimX = dimension.dimX;
 	let dimY = dimension.dimY;
 	let w = dimX*this.TILE_SIZE;
@@ -122,9 +79,9 @@ export class XYZTileset{
 		this.image.composite(tileImages[index],posX,posY);
 	    }
 	}
-	let tilesBbox= utils.bboxToTileBbox(bbox,zoom)
-        let pixelTopLeft = utils.latLonToPixel(bbox.north, bbox.west, tilesBbox, zoom);
-        let pixelBottomRight = utils.latLonToPixel(bbox.south, bbox.east, tilesBbox, zoom);
+	let tilesBbox= utils.bboxToTileBbox(bbox,zoom)  ////////////////////////////////////////////
+        let pixelTopLeft = utils.latLonToPixel(bbox.north, bbox.west, tilesBbox, zoom); /////////////
+        let pixelBottomRight = utils.latLonToPixel(bbox.south, bbox.east, tilesBbox, zoom); ///////////
 	let xc = pixelTopLeft.x;
 	let yc = pixelTopLeft.y;
 	let wc = pixelBottomRight.x - pixelTopLeft.x;
@@ -133,14 +90,13 @@ export class XYZTileset{
 	this.image.crop({x: xc, y:yc, w:wc, h:hc});
 	if(this.center){delete this.center}
 	this.bbox = bbox;
-	this.zoom= zoom;
 	//console.log(this.bbox)
 	return this.image
     }
 
 
     async getImageByPos(lat, lon, zoom, width, height){
-        let bbox= utils.latLngToBounds(lat, lon, zoom, width, height)	
+        let bbox= utils.latLngToBounds(lat, lon, zoom, width, height) //////////////////////////////
         let image = await this.getImage(bbox,zoom)
 	this.center = { lat: lat, lon: lon };
 	//console.log(this.bbox)
@@ -149,45 +105,23 @@ export class XYZTileset{
 
     getPixelPosition(lat,lon){
 	//console.log(this.bbox);
-	let pos = utils.latLonToPixel(lat, lon, this.bbox, this.zoom);
+	let pos = utils.latLonToPixel(lat, lon, this.bbox, this.zoom); /////////////////////////////
 	if(pos.x>this.image.width)pos.x=this.image.width;
 	if(pos.y>this.image.height)pos.y=this.image.height;
 	return pos
     }
     
-    async writeImage(path){
-	if(this.image){
-	    await this.image.write(path)
-	}
-    }
-
-
-    logInfo(){
-	let total = this.total;
-	if(total==0)total=1;
-	let memory=  Math.round(100*this.memory/total);
-	let disk=  Math.round(100*this.disk/total);
-	let url=  Math.round(100*this.url/total);
-	
-	process.stderr.write('\ntotal: '+this.total+' memory: '+memory+'% disk: '+disk+'% url: '+url+'%\n')
-    }
     
     getInfo(){
 	let info = {
 	    zoom: this.zoom,
 	    bbox: this.bbox,
 	    center: this.center,
-	    //template: this.template,
+	    template: this.template,
 	    width: this.image.width,
 	    height: this.image.height
 	}
 	return info;
     }
 
-    async writeInfo(path){
-	if(this.image){
-	    let info=this.getInfo();
-	    writeFileSync(path, JSON.stringify(info,null,2)+'\n','utf-8')
-	}
-    }
 }
