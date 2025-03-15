@@ -1,18 +1,17 @@
 #!/usr/bin/env node
 
+import {Jimp} from 'jimp';
 import { existsSync,mkdirSync } from 'node:fs';
-
 import { SphericalMercator } from '@mapbox/sphericalmercator';
-//import * as utils from './map-utils.mjs';
-
-//import { TileSet } from 'srtm-elevation';
 import pkg from 'srtm-elevation';
 const { TileSet } = pkg;
 
 
 
-import {Jimp} from 'jimp';
+
 //import * as tilebelt from '@mapbox/tilebelt';
+//import * as utils from './map-utils.mjs';
+//import { TileSet } from 'srtm-elevation';
 
 let tilesetter;
 var  Image;
