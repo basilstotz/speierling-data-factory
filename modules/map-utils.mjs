@@ -3,10 +3,12 @@
 import { Jimp } from 'jimp';
 import { promises as fs } from 'fs';
 import { existsSync, writeFileSync, mkdirSync } from 'fs'
-import * as tilebelt from '@mapbox/tilebelt'
 */
 
-import * as tilebelt from '@mapbox/tilebelt' 
+
+import * as tilebelt from '../node_modules/@mapbox/tilebelt/dist/esm/index.js'
+//../node_modules/@mapbox/tilebelt/dist/esm/
+//import { tileToQuadkey } from  '@mapbox/tilebelt' 
  
 
 // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#lon.2Flat_to_tile_numbers_2
