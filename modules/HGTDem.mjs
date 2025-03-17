@@ -5,7 +5,7 @@ import { existsSync,mkdirSync } from 'node:fs';
 import { SphericalMercator } from '@mapbox/sphericalmercator';
 import pkg from 'srtm-elevation';
 const { TileSet } = pkg;
-
+impot {xyz } from 'xyt-affair'
 
 
 
@@ -172,12 +172,12 @@ export class HGTDem  {
     }
 
     async makeImage(bbox,zoom,border=true){
-//console.log(bbox,zoom,border);
-	//wgs84
 	const bottom=bbox.south;
 	const top=bbox.north;
 	const left=bbox.west;
 	const right=bbox.east;
+//console.log(bbox,zoom,border);
+	//wgs84
 	//webmercator
 	/*
 	const leftTile=utils.lon2tileFraction(left,zoom);
@@ -193,12 +193,25 @@ export class HGTDem  {
 	let image = await this.makeImageMercator(leftTile/256,rightTile/256,bottomTile/256,topTile/256,zoom,border);
 	return image;
     }
+
+    async makeTilesFromBBox(bbox,zoom,path){
+	const south=bbox.south;
+	const north=bbox.north;
+	const west=bbox.west;
+	const east=bbox.east;
+	let tiles=xyz( [ [west,south], [east,north] ],zoom);
+	for( let tile of tiles){
+	    this.makeTile( tile.x,tile.y,tile.z);
+	    this.writeTile(path)
+	}
+    }
+	
     
     async makeTile(x,y,z){
 	this.x=x;
 	this.y=y;
 	this.z=z;
-	let tile = await this.makeImageMercator(x,x+1,y+1,y,z,false)
+	let tile = await this.makeImageMercator(x,x+1,y,y-1,z,false)
 	return tile;
     }
 
