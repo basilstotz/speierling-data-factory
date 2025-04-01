@@ -45,4 +45,4 @@ function calc(dirName){
 let text='var archive = \n'+JSON.stringify(out,null,2)+';';
 
 //process.stderr.write(text);
-fs.writeFileSync('archive-stats.js',text );
+fs.writeFileSync('./../archive-stats.js',text );
