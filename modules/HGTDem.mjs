@@ -5,9 +5,9 @@ import { existsSync,mkdirSync } from 'node:fs';
 import { SphericalMercator } from '@mapbox/sphericalmercator';
 import pkg from 'srtm-elevation';
 const { TileSet } = pkg;
-impot {xyz } from 'xyt-affair'
-
-
+//import pkg2 from 'xyz-affair';
+//const xyz = pkg2
+//import * as viewport from '@mapbox/geo-viewport'
 
 //import * as tilebelt from '@mapbox/tilebelt';
 //import * as utils from './map-utils.mjs';
@@ -176,16 +176,6 @@ export class HGTDem  {
 	const top=bbox.north;
 	const left=bbox.west;
 	const right=bbox.east;
-//console.log(bbox,zoom,border);
-	//wgs84
-	//webmercator
-	/*
-	const leftTile=utils.lon2tileFraction(left,zoom);
-	const rightTile=utils.lon2tileFraction(right,zoom);
-	const bottomTile=utils.lat2tileFraction(bottom,zoom);
-	const topTile=utils.lat2tileFraction(top,zoom);
-        */
-
 	const [ leftTile,topTile ] = this.merc.px([left,top],zoom);
 	const [ rightTile,bottomTile ] = this.merc.px([right,bottom],zoom);
 	
@@ -194,29 +184,56 @@ export class HGTDem  {
 	return image;
     }
 
-    async makeTilesFromBBox(bbox,zoom,path){
-	const south=bbox.south;
-	const north=bbox.north;
-	const west=bbox.west;
-	const east=bbox.east;
-	let tiles=xyz( [ [west,south], [east,north] ],zoom);
-	for( let tile of tiles){
-	    this.makeTile( tile.x,tile.y,tile.z);
-	    this.writeTile(path)
+    async getImageFromViewport(bounds,zoom,dimensions){
+ 	let bbox = viewport.viewport(bounds,zoom, dimensions);
+        return await this.makeImage( {
+	    west: bbox[0],
+	    south: bbox[1],
+	    east: bbox[2],
+	    north: bbox[3]
+	},zoom,false);
+    }
+
+    existsTile(x,y,z,path){
+	if(!path.endsWith('/'))path=path+'/';
+	let spath=path+z+'/'+x+'/'+y+'.png';
+	return existsSync(spath)
+    }
+    
+    async makeTilesFromBBOX(bbox,zoom,path){
+        const south = bbox.south;
+        const north = bbox.north;
+        const west = bbox.west;
+        const east = bbox.east;
+        let tiles = xyz( [ [west,south], [east,north] ],zoom);
+        for( let tile of tiles){
+	    if(!this.existsTile(tile.x, tile.y, tile.z,path)){
+		await this.makeTile( tile.x, tile.y, tile.z);
+		await this.writeTile(path)
+	    }
+        }
+    }
+
+    async makeTileOnPos(lon,lat,zoom,path){
+	let xy=this.merc.px( [ lon, lat ],zoom )
+	let x= Math.floor(xy[0]/256);
+	let y= Math.floor(xy[1]/256);
+	if(!this.existsTile(x,y,zoom,path)){
+	    await this.makeTile(x,y,zoom);
+	    await this.writeTile(path)
 	}
     }
-	
     
     async makeTile(x,y,z){
 	this.x=x;
 	this.y=y;
 	this.z=z;
-	let tile = await this.makeImageMercator(x,x+1,y,y-1,z,false)
+	let tile = await this.makeImageMercator(x,x+1,y+1,y,z,false)
 	return tile;
     }
 
     async writeTile(tileDir){
-	//console.log(this.mage);
+	process.stderr.write('.');
 	if(!tileDir.endsWith('/'))tileDir=tileDir+'/';
 	let path=tileDir+this.z+'/'+this.x+'/';
 	if(!existsSync(path))mkdirSync(path,{recursive:true});
