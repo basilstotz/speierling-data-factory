@@ -18,7 +18,7 @@ pwd
 # ./bin/archive-stats.js ???????????????????????
 
 #cp ./../../node/mediaIndex.json mediaIndex.json
-curl https://speierling.arglos.ch/node/mediaIndex.json 2>/dev/null  > "${ADDONS}/mediaIndex.json"
+#curl https://speierling.arglos.ch/node/mediaIndex.json 2>/dev/null  > "${ADDONS}/mediaIndex.json"
 
 ./osm/bin/cat-osm-geojson.sh "../$CACHE" | \
             ./bin/check-tags.js | \
