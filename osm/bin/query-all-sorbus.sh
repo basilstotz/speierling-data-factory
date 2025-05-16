@@ -38,7 +38,11 @@ query_part(){
     if ! test -f $FILE; then
 	echo "+++++++++++++++++++ " $FILE " ++++ " $QUERY
 	echo $QUERY | query-overpass | tee $FILE.tmp
-	mv $FILE.tmp $FILE
+	if test -z "$(find $FILE.tmp -empty)"; then
+	    mv $FILE.tmp $FILE
+	else
+	    rm $FILE.tmp
+	fi
     fi
 }
 
