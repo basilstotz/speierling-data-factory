@@ -1,0 +1,30 @@
+#!/bin/sh
+
+if test -n "$1"; then
+    GEBIET="active"
+else
+    GEBIET="schweiz"
+fi
+
+echo "download ..."
+FILE=$(cat <<EOF | ssh -T amxa.ch
+find public_html/speierling/Tabellen/ -name "Tabelle*ods"|sort|tail -n1
+EOF
+    )
+
+FILENAME=$(basename -s ".ods" "$FILE")
+
+echo "$FILE"
+
+scp "amxa.ch:public_html/speierling/Tabellen/${FILENAME}.ods" "/tmp/${FILENAME}.ods"
+
+echo "convert ..."
+libreoffice --headless --convert-to csv --infilter=CSV:44,34,76 --outdir /tmp/ "/tmp/${FILENAME}.ods"
+
+echo "upload ..."
+scp "/tmp/${FILENAME}.csv" "amxa.ch:public_html/speierling/data/csv/${FILENAME}.csv"
+
+echo "update site ..."
+ssh amxa.ch env PATH=/usr/local/bin:/usr/bin:/home/amxach/bin/ make -C public_html/speierling/data $GEBIET
+
+echo "done"
